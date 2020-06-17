@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"log"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -373,6 +374,24 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	return nil
 }
 
+func (a *App) SendAutoResponseToUser(user *model.User, channelId string) (*model.AppError) {
+    channel, err := a.Srv.Store.Channel().Get(channelId, true)
+
+    if err != nil {
+        log.Print("error!")
+        return err
+    }
+
+    a.Srv.Go(func() {
+        _, err := a.SendCustomAutoResponseToUsers(channel, user)
+         if err != nil {
+           mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.Err(err))
+         }
+    })
+
+    return nil
+}
+
 func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) error {
 	var team *model.Team
 	if len(channel.TeamId) > 0 {
@@ -394,10 +413,11 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	a.Srv.Go(func() {
-		_, err := a.SendAutoResponseIfNecessary(channel, user)
-		if err != nil {
-			mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
-		}
+	    // auto response of the previous version of this system was being called from here
+		// _, err := a.SendAutoResponseIfNecessary(channel, user)
+		// if err != nil {
+		//	 mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+		// }
 	})
 
 	if triggerWebhooks {

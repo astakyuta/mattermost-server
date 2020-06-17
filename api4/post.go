@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"log"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -30,6 +31,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/auto_response", api.ApiSessionRequired(createAutoResponse)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -74,6 +76,33 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
 	w.Write([]byte(rp.ToJson()))
 }
+
+func createAutoResponse(c *Context, w http.ResponseWriter, r *http.Request) {
+    post := model.StringInterfaceFromJson(r.Body)
+
+    if post["channel_ids"] == nil {
+        c.SetInvalidParam("channel_ids")
+        return
+    }
+
+    user, err := c.App.GetUser(c.App.Session.UserId)
+    if err != nil {
+    	c.Err = err
+    	return
+    }
+
+    for _,channel:=range post["channel_ids"].([]interface{}) {
+        log.Print(channel.(string))
+        channelId := channel.(string)
+        c.App.SendAutoResponseToUser(user, channelId)
+    }
+
+	ReturnStatusOK(w)
+}
+
+
+
+
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	ephRequest := model.PostEphemeral{}

@@ -6,13 +6,50 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	// "time"
+	// "strconv"
+	"log"
 )
+
+func (a *App) SendCustomAutoResponseToUsers(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
+
+    message := sender.NotifyProps[model.AUTO_RESPONDER_MESSAGE_NOTIFY_PROP]
+
+    if message == "" {
+        return false, nil
+    }
+    log.Print("part 3 under for")
+
+    autoResponderPost := &model.Post{
+        ChannelId: channel.Id,
+        Message:   message,
+        RootId:    "",
+        ParentId:  "",
+        Type:      model.POST_AUTO_RESPONDER,
+        UserId:    sender.Id,
+    }
+
+    log.Print("part 4 under for")
+
+    if _, err := a.CreatePost(autoResponderPost, channel, false); err != nil {
+        mlog.Error(err.Error())
+        return false, err
+    }
+
+    log.Print("part 5 under for")
+
+    log.Print("comes under if nec")
+
+	return true, nil
+}
+
+
 
 func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
 	if channel.Type != model.CHANNEL_DIRECT {
 		return false, nil
 	}
-
+    log.Print("comes under if nec")
 	receiverId := channel.GetOtherUserIdForDM(sender.Id)
 
 	receiver, err := a.GetUser(receiverId)
@@ -28,12 +65,29 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) (bo
 		return false, nil
 	}
 
-	active := receiver.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
-	message := receiver.NotifyProps[model.AUTO_RESPONDER_MESSAGE_NOTIFY_PROP]
+    message := receiver.NotifyProps[model.AUTO_RESPONDER_MESSAGE_NOTIFY_PROP]
+    // needed if auto responder is dependent on active status
+	// active := receiver.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
 
-	if !active || message == "" {
+	// needed if auto responder duration is calculated here
+	// duration := receiver.NotifyProps[model.AUTO_RESPONDER_DURATION_NOTIFY_PROP]
+
+	// if !active || message == "" {
+	//	return false, nil
+	// }
+
+	if message == "" {
 		return false, nil
 	}
+
+    // needed if auto responder duration is calculated here
+    // replyPeriod, err := strconv.Atoi(duration)
+    // if err == nil {
+    //        time.Sleep(time.Duration(replyPeriod) * time.Second)
+    // }
+
+
+    // log.Print("comes before autoResponderPost")
 
 	autoResponderPost := &model.Post{
 		ChannelId: channel.Id,
@@ -45,6 +99,7 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) (bo
 	}
 
 	if _, err := a.CreatePost(autoResponderPost, channel, false); err != nil {
+	    log.Print("comes under last err")
 		mlog.Error(err.Error())
 		return false, err
 	}
@@ -56,12 +111,9 @@ func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.Stri
 	active := user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
 	oldActive := oldNotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
 
-	autoResponderEnabled := !oldActive && active
 	autoResponderDisabled := oldActive && !active
 
-	if autoResponderEnabled {
-		a.SetStatusOutOfOffice(user.Id)
-	} else if autoResponderDisabled {
+	if autoResponderDisabled {
 		a.SetStatusOnline(user.Id, true)
 	}
 }

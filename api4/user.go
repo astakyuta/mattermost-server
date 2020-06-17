@@ -48,6 +48,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(saveUserTermsOfService)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(getUserTermsOfService)).Methods("GET")
+    api.BaseRoutes.User.Handle("/is_typing", api.ApiSessionRequired(updateUserTyping)).Methods("PUT")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -1073,6 +1074,33 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		})
 	}
+	ReturnStatusOK(w)
+}
+
+func updateUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
+	// c.RequireUserId()
+	// if c.Err != nil {
+	//	return
+	// }
+
+	props := model.StringInterfaceFromJson(r.Body)
+
+	isTyping, ok := props["is_typing"].(string)
+	if !ok {
+		c.SetInvalidParam("isTyping")
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if _, err = c.App.UpdateUserTyping(user, isTyping); err != nil {
+		c.Err = err
+	}
+
 	ReturnStatusOK(w)
 }
 
