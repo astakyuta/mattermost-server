@@ -40,6 +40,7 @@ const (
 	FIRST_NAME_NOTIFY_PROP             = "first_name"
 	AUTO_RESPONDER_ACTIVE_NOTIFY_PROP  = "auto_responder_active"
 	AUTO_RESPONDER_MESSAGE_NOTIFY_PROP = "auto_responder_message"
+	AUTO_RESPONDER_DURATION_NOTIFY_PROP = "auto_responder_duration"
 
 	DEFAULT_LOCALE          = "en"
 	USER_AUTH_SERVICE_EMAIL = "email"
@@ -87,6 +88,7 @@ type User struct {
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
+	IsTyping               string    `json:"is_typing,omitempty"`
 }
 
 type UserUpdate struct {
@@ -106,6 +108,7 @@ type UserPatch struct {
 	NotifyProps StringMap `json:"notify_props,omitempty"`
 	Locale      *string   `json:"locale"`
 	Timezone    StringMap `json:"timezone"`
+	IsTyping    *string     `json:"is_typing,omitempty"`
 }
 
 type UserAuth struct {

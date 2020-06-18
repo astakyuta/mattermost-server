@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
 )
 
 const (
@@ -258,6 +259,9 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 
 	return otherUserId
 }
+
+
+
 
 func GetDMNameFromIds(userId1, userId2 string) string {
 	if userId1 > userId2 {

@@ -93,6 +93,7 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.ColMap("Position").SetMaxSize(128)
 		table.ColMap("Timezone").SetMaxSize(256)
+		table.ColMap("IsTyping").SetMaxSize(128)
 	}
 
 	return us
@@ -249,6 +250,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) *model.AppE
 
 	return nil
 }
+
 
 func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int) *model.AppError {
 	if _, err := us.GetMaster().Exec("UPDATE Users SET FailedAttempts = :FailedAttempts WHERE Id = :UserId", map[string]interface{}{"FailedAttempts": attempts, "UserId": userId}); err != nil {

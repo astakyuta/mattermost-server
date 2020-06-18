@@ -1003,6 +1003,19 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	return ruser, nil
 }
 
+func (a *App) UpdateUserTyping(user *model.User, isTyping string) (*model.User, *model.AppError) {
+
+    user.IsTyping = isTyping
+
+    userUpdate, err := a.Srv.Store.User().Update(user, true)
+    if err != nil {
+        return nil, err
+    }
+    ruser := userUpdate.New
+
+	return ruser, nil
+}
+
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	options := a.Config().GetSanitizeOptions()
 	if asAdmin {
