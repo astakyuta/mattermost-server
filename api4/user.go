@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"log"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -49,6 +50,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(saveUserTermsOfService)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(getUserTermsOfService)).Methods("GET")
     api.BaseRoutes.User.Handle("/is_typing", api.ApiSessionRequired(updateUserTyping)).Methods("PUT")
+    api.BaseRoutes.Users.Handle("/auto_response/save", api.ApiHandler(updateUsersAutoResponse)).Methods("PUT")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -592,6 +594,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
+			log.Print("profiles: ", profiles);
 		}
 	} else if len(inChannelId) > 0 {
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, inChannelId, model.PERMISSION_READ_CHANNEL) {
@@ -1100,6 +1103,42 @@ func updateUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err = c.App.UpdateUserTyping(user, isTyping); err != nil {
 		c.Err = err
 	}
+
+	ReturnStatusOK(w)
+}
+
+func updateUsersAutoResponse(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+
+	status, ok := props["status"].(interface{}) // .(string)
+	if !ok {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	message, ok := props["message"].(string)
+	if !ok {
+        c.SetInvalidParam("message")
+        return
+    }
+
+    duration, ok := props["duration"].(string)
+    if !ok {
+        c.SetInvalidParam("duration")
+        return
+    }
+
+    for UserId, value := range status.(map[string]interface{}) {
+        // if _, err = c.App.UpdateUsersAutoResponse(UserId, message, duration, active); err != nil {
+        //    c.Err = err
+        // }
+
+        // active := arguments.String(value)
+
+        active := fmt.Sprintf("%v", value)
+        c.App.UpdateUsersAutoResponse(UserId, message, duration, active);
+
+    }
 
 	ReturnStatusOK(w)
 }

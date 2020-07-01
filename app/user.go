@@ -1016,6 +1016,25 @@ func (a *App) UpdateUserTyping(user *model.User, isTyping string) (*model.User, 
 	return ruser, nil
 }
 
+func (a *App) UpdateUsersAutoResponse(userId string, message string, duration string, active string) (*model.User, *model.AppError) {
+    user, err := a.GetUser(userId)
+    if err != nil {
+        return nil, err
+    }
+
+    user.NotifyProps[model.AUTO_RESPONDER_MESSAGE_NOTIFY_PROP] = message
+    user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] = active
+    user.NotifyProps[model.AUTO_RESPONDER_DURATION_NOTIFY_PROP] = duration
+
+    userUpdate, err := a.Srv.Store.User().Update(user, true)
+    if err != nil {
+        return nil, err
+    }
+    ruser := userUpdate.New
+
+	return ruser, nil
+}
+
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	options := a.Config().GetSanitizeOptions()
 	if asAdmin {
