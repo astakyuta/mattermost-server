@@ -1032,6 +1032,13 @@ func (a *App) UpdateUsersAutoResponse(userId string, message string, duration st
     }
     ruser := userUpdate.New
 
+    newMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_AUTO_RESPONSE_UPDATE, "", "", userId, nil)
+    	// message.Add("user_id", userId)
+    	// message.Add("active", active)
+    	// message.Add("duration", duration)
+    	newMessage.Add("user", ruser)
+    	a.Publish(newMessage)
+
 	return ruser, nil
 }
 
