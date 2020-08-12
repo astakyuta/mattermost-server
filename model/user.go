@@ -41,6 +41,7 @@ const (
 	AUTO_RESPONDER_ACTIVE_NOTIFY_PROP  = "auto_responder_active"
 	AUTO_RESPONDER_MESSAGE_NOTIFY_PROP = "auto_responder_message"
 	AUTO_RESPONDER_DURATION_NOTIFY_PROP = "auto_responder_duration"
+	AUTO_LOGOUT_DURATION_NOTIFY_PROP   = "auto_logout_duration"
 
 	DEFAULT_LOCALE          = "en"
 	USER_AUTH_SERVICE_EMAIL = "email"

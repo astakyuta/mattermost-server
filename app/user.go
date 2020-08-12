@@ -931,12 +931,12 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 		return err
 	}
 
-	if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
-		if err.Id == "api.user.check_user_password.invalid.app_error" {
-			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
-		}
-		return err
-	}
+	// if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
+	//	    if err.Id == "api.user.check_user_password.invalid.app_error" {
+	//	    	err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
+	//	    }
+	//	    return err
+	// }
 
 	T := utils.GetUserTranslations(user.Locale)
 
@@ -1041,6 +1041,24 @@ func (a *App) UpdateUsersAutoResponse(userId string, message string, duration st
 
 	return ruser, nil
 }
+
+func (a *App) UpdateUserAutoLogout(userId string, duration string) (*model.User, *model.AppError) {
+    user, err := a.GetUser(userId)
+    if err != nil {
+        return nil, err
+    }
+
+    user.NotifyProps[model.AUTO_LOGOUT_DURATION_NOTIFY_PROP] = duration
+
+    userUpdate, err := a.Srv.Store.User().Update(user, true)
+    if err != nil {
+        return nil, err
+    }
+    ruser := userUpdate.New
+
+	return ruser, nil
+}
+
 
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	options := a.Config().GetSanitizeOptions()

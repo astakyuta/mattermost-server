@@ -51,6 +51,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(getUserTermsOfService)).Methods("GET")
     api.BaseRoutes.User.Handle("/is_typing", api.ApiSessionRequired(updateUserTyping)).Methods("PUT")
     api.BaseRoutes.Users.Handle("/auto_response/save", api.ApiHandler(updateUsersAutoResponse)).Methods("PUT")
+    api.BaseRoutes.User.Handle("/auto_logout", api.ApiSessionRequired(updateUserAutoLogout)).Methods("PUT")
 
 	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
 
@@ -1143,6 +1144,23 @@ func updateUsersAutoResponse(c *Context, w http.ResponseWriter, r *http.Request)
 	ReturnStatusOK(w)
 }
 
+func updateUserAutoLogout(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+
+	auto_logout_duration, ok := props["auto_logout_duration"].(string) 
+	if !ok {
+		c.SetInvalidParam("auto_logout_duration")
+		return
+	}
+
+	c.App.UpdateUserAutoLogout(c.Params.UserId, auto_logout_duration)
+
+	ReturnStatusOK(w)
+}
+
+
+
+
 func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1289,19 +1307,33 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempted")
 
 	var err *model.AppError
-	if c.Params.UserId == c.App.Session.UserId {
-		currentPassword := props["current_password"]
-		if len(currentPassword) <= 0 {
-			c.SetInvalidParam("current_password")
-			return
-		}
 
-		err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
-	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
-	} else {
-		err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
-	}
+	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+        err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+    } else {
+        currentPassword := props["current_password"]
+        if len(currentPassword) <= 0 {
+            c.SetInvalidParam("current_password")
+            return
+        }
+
+        err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+    }
+
+	// if c.Params.UserId == c.App.Session.UserId {
+    //     currentPassword := props["current_password"]
+    //     if len(currentPassword) <= 0 {
+    //         c.SetInvalidParam("current_password")
+    //         return
+    //     }
+    //
+    //     err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+    // } else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+    //     err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+    // } else {
+    //     err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+    // }
+
 
 	if err != nil {
 		c.LogAudit("failed")
