@@ -923,10 +923,10 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		return
-	}
+	//if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+	//	c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	//	return
+	//}
 
 	ouser, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
@@ -1147,7 +1147,7 @@ func updateUsersAutoResponse(c *Context, w http.ResponseWriter, r *http.Request)
 func updateUserAutoLogout(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 
-	auto_logout_duration, ok := props["auto_logout_duration"].(string) 
+	auto_logout_duration, ok := props["auto_logout_duration"].(string)
 	if !ok {
 		c.SetInvalidParam("auto_logout_duration")
 		return
