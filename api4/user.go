@@ -971,7 +971,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
-func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
+func (a *App) deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
 		return

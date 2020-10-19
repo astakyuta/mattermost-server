@@ -599,28 +599,43 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session.UserId != c.Params.UserId {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_REMOVE_USER_FROM_TEAM) {
-			c.SetPermissionError(model.PERMISSION_REMOVE_USER_FROM_TEAM)
-			return
-		}
-	}
+	//if c.App.Session.UserId != c.Params.UserId {
+	//	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_REMOVE_USER_FROM_TEAM) {
+	//		c.SetPermissionError(model.PERMISSION_REMOVE_USER_FROM_TEAM)
+	//		return
+	//	}
+	//}
 
-	team, err := c.App.GetTeam(c.Params.TeamId)
+	//team, err := c.App.GetTeam(c.Params.TeamId)
+	//if err != nil {
+	//	c.Err = err
+	//	return
+	//}
+
+	var user *model.User
+	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if team.IsGroupConstrained() && (c.Params.UserId != c.App.Session.UserId) {
-		c.Err = model.NewAppError("removeTeamMember", "api.team.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
+	err = c.App.PermanentDeleteUser(user)
 
-	if err := c.App.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId, c.App.Session.UserId); err != nil {
+	if err != nil {
 		c.Err = err
 		return
 	}
+
+	//
+	//if team.IsGroupConstrained() && (c.Params.UserId != c.App.Session.UserId) {
+	//	c.Err = model.NewAppError("removeTeamMember", "api.team.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
+	//	return
+	//}
+	//
+	//if err := c.App.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId, c.App.Session.UserId); err != nil {
+	//	c.Err = err
+	//	return
+	//}
 
 	ReturnStatusOK(w)
 }
