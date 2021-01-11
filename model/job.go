@@ -18,6 +18,7 @@ const (
 	JOB_TYPE_LDAP_SYNC                      = "ldap_sync"
 	JOB_TYPE_MIGRATIONS                     = "migrations"
 	JOB_TYPE_PLUGINS                        = "plugins"
+	JOB_TYPE_DELETE_MESSAGES                = "auto_delete_messages"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -25,6 +26,7 @@ const (
 	JOB_STATUS_ERROR            = "error"
 	JOB_STATUS_CANCEL_REQUESTED = "cancel_requested"
 	JOB_STATUS_CANCELED         = "canceled"
+
 )
 
 type Job struct {
@@ -56,6 +58,7 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_MESSAGE_EXPORT:
 	case JOB_TYPE_MIGRATIONS:
 	case JOB_TYPE_PLUGINS:
+	case JOB_TYPE_DELETE_MESSAGES:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

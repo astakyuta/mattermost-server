@@ -1049,6 +1049,7 @@ func (a *App) UpdateUserAutoLogout(userId string, duration string) (*model.User,
     }
 
     user.NotifyProps[model.AUTO_LOGOUT_DURATION_NOTIFY_PROP] = duration
+    user.NotifyProps[model.AUTO_DELETE_MESSAGES_DURATION] = duration
 
     userUpdate, err := a.Srv.Store.User().Update(user, true)
     if err != nil {

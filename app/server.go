@@ -17,6 +17,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/robfig/cron/v3"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -261,6 +263,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.initJobs()
+	s.startCronJobs()
 
 	if s.runjobs {
 		s.Go(func() {
@@ -775,4 +778,15 @@ func (s *Server) shutdownDiagnostics() error {
 	}
 
 	return nil
+}
+
+func (s *Server) startCronJobs() {
+	c := cron.New()
+	c.AddFunc("@every 0h0m1s", func() { fmt.Println("Every second") })
+	c.Start()
+
+	// Added time to see output
+	time.Sleep(10 * time.Second)
+
+	c.Stop() // Stop the scheduler (does not stop any jobs already running).
 }
