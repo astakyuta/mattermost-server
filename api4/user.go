@@ -37,7 +37,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequired(setDefaultProfileImage)).Methods("DELETE")
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(updateUser)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/patch", api.ApiSessionRequired(patchUser)).Methods("PUT")
-	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(deleteUser)).Methods("DELETE")
+	//api.BaseRoutes.User.Handle("", api.ApiSessionRequired(deleteUser)).Methods("DELETE")
 	api.BaseRoutes.User.Handle("/roles", api.ApiSessionRequired(updateUserRoles)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/active", api.ApiSessionRequired(updateUserActive)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/password", api.ApiSessionRequired(updatePassword)).Methods("PUT")
@@ -971,38 +971,38 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
-func (a *App) deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	userId := c.Params.UserId
-
-	if !c.App.SessionHasPermissionToUser(c.App.Session, userId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		return
-	}
-
-	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
-	if c.Params.UserId == c.App.Session.UserId && !*c.App.Config().TeamSettings.EnableUserDeactivation && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.Err = model.NewAppError("deleteUser", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
-		return
-	}
-
-	user, err := c.App.GetUser(userId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if _, err = c.App.UpdateActive(user, false); err != nil {
-		c.Err = err
-		return
-	}
-
-	ReturnStatusOK(w)
-}
+//func (a *App) deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
+//	c.RequireUserId()
+//	if c.Err != nil {
+//		return
+//	}
+//
+//	userId := c.Params.UserId
+//
+//	if !c.App.SessionHasPermissionToUser(c.App.Session, userId) {
+//		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+//		return
+//	}
+//
+//	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
+//	if c.Params.UserId == c.App.Session.UserId && !*c.App.Config().TeamSettings.EnableUserDeactivation && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+//		c.Err = model.NewAppError("deleteUser", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+//		return
+//	}
+//
+//	user, err := c.App.GetUser(userId)
+//	if err != nil {
+//		c.Err = err
+//		return
+//	}
+//
+//	if _, err = c.App.UpdateActive(user, false); err != nil {
+//		c.Err = err
+//		return
+//	}
+//
+//	ReturnStatusOK(w)
+//}
 
 func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()

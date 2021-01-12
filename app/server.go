@@ -17,8 +17,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/robfig/cron/v3"
-
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -263,7 +261,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.initJobs()
-	s.startCronJobs()
 
 	if s.runjobs {
 		s.Go(func() {
@@ -281,6 +278,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			runCommandWebhookCleanupJob(s)
 		})
+		s.Go(func() {
+			runMessageCleanUpJob(s)
+		})
+
 
 		if complianceI := s.Compliance; complianceI != nil {
 			complianceI.StartComplianceDailyJob()
@@ -675,6 +676,13 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runMessageCleanUpJob(s *Server) {
+	doMessageCleanUp(s)
+	model.CreateRecurringTask("Message Cleanup", func() {
+		doMessageCleanUp(s)
+	}, time.Minute*1)
+}
+
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -780,13 +788,10 @@ func (s *Server) shutdownDiagnostics() error {
 	return nil
 }
 
-func (s *Server) startCronJobs() {
-	c := cron.New()
-	c.AddFunc("@every 0h0m1s", func() { fmt.Println("Every second") })
-	c.Start()
-
-	// Added time to see output
-	time.Sleep(10 * time.Second)
-
-	c.Stop() // Stop the scheduler (does not stop any jobs already running).
+func doMessageCleanUp(s *Server) {
+	result, err := s.Store.User().GetByUsername("samirmaikap")
+	fmt.Println("Getting users")
+	str := fmt.Sprint(result)
+	fmt.Println(str)
+	fmt.Println(string(err))
 }

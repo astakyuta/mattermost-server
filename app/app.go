@@ -95,6 +95,7 @@ func (s *Server) initJobs() {
 	}
 	s.Jobs.Workers = s.Jobs.InitWorkers()
 	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
+
 }
 
 func (a *App) DiagnosticId() string {
