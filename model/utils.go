@@ -162,6 +162,24 @@ func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+func GetNextCleanupDate(checkDuration) int64 {
+	today := time.Now()
+	duration := time.Hour * 24 * time.Duration(checkDuration)
+	nextCheckDay := today.Add(duration)
+	nextCheckDate := nextCheckDay.Format("2006-01-02")
+
+	nextCheckDatenTime := nextCheckDate + " 23:59:00"
+
+	date, err := time.Parse("2006-01-02 00:00:00", string(nextCheckDatenTime))
+	if err != nil {
+		date = time.Now()
+	}
+
+	nextCleanupDate := date.UnixNano() / int64(time.Millisecond)
+
+	return nextCleanupDate
+}
+
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
 	return thisTime.UnixNano() / int64(time.Millisecond)

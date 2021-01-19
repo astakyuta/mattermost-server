@@ -123,6 +123,8 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.AllowedDomains = team.AllowedDomains
 	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
 	oldTeam.GroupConstrained = team.GroupConstrained
+	oldTeam.MessageCleanupDuration = team.MessageCleanupDuration
+	oldTeam.MessageCleanupDate = team.MessageCleanupDate
 
 	oldTeam, err = a.updateTeamUnsanitized(oldTeam)
 	if err != nil {

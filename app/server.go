@@ -677,10 +677,9 @@ func runSessionCleanupJob(s *Server) {
 }
 
 func runMessageCleanUpJob(s *Server) {
-	doMessageCleanUp(s)
 	model.CreateRecurringTask("Message Cleanup", func() {
 		doMessageCleanUp(s)
-	}, time.Minute*1)
+	}, time.Hour*24)
 }
 
 func doSecurity(s *Server) {
@@ -789,9 +788,61 @@ func (s *Server) shutdownDiagnostics() error {
 }
 
 func doMessageCleanUp(s *Server) {
-	result, err := s.Store.User().GetByUsername("samirmaikap")
-	fmt.Println("Getting users")
-	str := fmt.Sprint(result)
-	fmt.Println(str)
-	fmt.Println(string(err))
+
+	users, err := s.Store.User().GetAll()
+
+	for _, user := range users {
+		mlog.Warn("users ids")
+		mlog.Warn(user.Id)
+
+		teams, teamError := s.Store.Team().GetTeamsByUserId(user.Id)
+		if teamError != nil {
+			mlog.Error(teamError.Error())
+		}
+
+		for _, team := range teams {
+			currentTime := time.Now().UnixNano() / int64(time.Millisecond)
+			if team.MessageCleanupDuration != 0 && currentTime >= team.MessageCleanupDate {
+				includeDeleted := false
+				channels, channelErr := s.Store.Channel().GetChannels(team.Id, user.Id, includeDeleted)
+
+				if channelErr != nil {
+					mlog.Error(channelErr.Error())
+				}
+
+				for _, channel := range *channels {
+					mlog.Warn(channel.Id)
+					err2 := s.Store.Post().PermanentDeleteByChannel(channel.Id)
+					if err2 != nil {
+						mlog.Error(err2.Error())
+					}
+				}
+
+				team.MessageCleanupDate = GetNextCleanupDate(team.MessageCleanupDuration)
+				s.Store.Team().Update(team)
+			}
+		}
+	}
+
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+}
+
+func GetNextCleanupDate(checkDuration int64) int64 {
+	today := time.Now()
+	duration := time.Hour * 24 * time.Duration(checkDuration)
+	nextCheckDay := today.Add(duration)
+	nextCheckDate := nextCheckDay.Format("2006-01-02")
+
+	nextCheckDatenTime := nextCheckDate + " 23:59:00"
+
+	date, err := time.Parse("2006-01-02 00:00:00", string(nextCheckDatenTime))
+	if err != nil {
+		date = time.Now()
+	}
+
+	nextCleanupDate := date.UnixNano() / int64(time.Millisecond)
+
+	return nextCleanupDate
 }

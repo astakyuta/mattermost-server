@@ -42,6 +42,8 @@ type Team struct {
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
 	GroupConstrained   *bool   `json:"group_constrained"`
+	MessageCleanupDuration int64   `json:"message_cleanup_duration"`
+	MessageCleanupDate int64   `json:"message_cleanup_date"`
 }
 
 type TeamPatch struct {
@@ -51,6 +53,7 @@ type TeamPatch struct {
 	AllowedDomains   *string `json:"allowed_domains"`
 	AllowOpenInvite  *bool   `json:"allow_open_invite"`
 	GroupConstrained *bool   `json:"group_constrained"`
+	MessageCleanupDuration *int64   `json:"message_cleanup_duration"`
 }
 
 type TeamForExport struct {
@@ -294,6 +297,13 @@ func (t *Team) Patch(patch *TeamPatch) {
 	if patch.GroupConstrained != nil {
 		t.GroupConstrained = patch.GroupConstrained
 	}
+
+	if patch.MessageCleanupDuration != nil {
+		t.MessageCleanupDuration = *patch.MessageCleanupDuration
+		t.MessageCleanupDate = GetNextCleanupDate(*patch.MessageCleanupDuration)
+	}
+
+
 }
 
 func (t *Team) IsGroupConstrained() bool {
