@@ -168,9 +168,9 @@ func GetNextCleanupDate(checkDuration int64) int64 {
 	nextCheckDay := today.Add(duration)
 	nextCheckDate := nextCheckDay.Format("2006-01-02")
 
-	nextCheckDatenTime := nextCheckDate + " 23:59:00"
+	nextCheckDatenTime := string(nextCheckDate) + "T23:59:00Z"
 
-	date, err := time.Parse("2006-01-02 00:00:00", string(nextCheckDatenTime))
+	date, err := time.Parse(time.RFC3339, string(nextCheckDatenTime))
 	if err != nil {
 		date = time.Now()
 	}
