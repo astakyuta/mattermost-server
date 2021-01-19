@@ -162,7 +162,7 @@ func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func GetNextCleanupDate(checkDuration) int64 {
+func GetNextCleanupDate(checkDuration int64) int64 {
 	today := time.Now()
 	duration := time.Hour * 24 * time.Duration(checkDuration)
 	nextCheckDay := today.Add(duration)
